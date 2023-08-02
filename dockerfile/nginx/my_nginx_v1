@@ -1,0 +1,32 @@
+FROM centos:latest
+LABEL maintainer="ssyu" version="my_nginx:v1"
+
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime  #修改时区
+
+WORKDIR /usr/local/src  #设置工作目录
+ENV NG_VERSION=nginx-1.22.1
+RUN yum -y install  wget  #安装wget
+
+RUN wget http://nginx.org/download/$NG_VERSION.tar.gz && tar xzvf $NG_VERSION.tar.gz   #下载nginx源码包并解压
+
+RUN yum -y install gcc gcc-c++ pcre pcre-devel zlib zlib-devel openssl openssl-devel   #安装依赖包
+
+RUN yum clean all #清除缓存
+
+RUN useradd -M -s /sbin/nologin nginx  #创建nginx用户，不创建家目录，不能登录
+
+WORKDIR /usr/local/src/$NG_VERSION  #切换工作目录，准备编译nginx
+
+RUN ./configure --prefix=/usr/local/nginx --user=nginx --group=nginx && make  && make install
+
+ADD index.html /usr/local/nginx/html  #把index.html放到/usr/local/nginx/html目录
+
+VOLUME /usr/local/nginx/html  #把/usr/local/nginx/html定义成匿名卷，在启动容器时可以mount 或 -v
+
+ENV PATH $PATH:/usr/local/nginx/sbin #添加 nginx 的 sbin 目录到环境变量中
+
+EXPOSE 80/tcp #暴露80端口，仅仅是一个声明
+
+ENTRYPOINT ["nginx"]
+
+CMD ["-g","daemon off;"]
