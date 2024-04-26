@@ -1,0 +1,14 @@
+---
+#测试同一个pod中两个容器的网络命名空间是否共享，看ip确认
+apiVersion: v1
+kind: Pod
+metadata:
+  name: net-shared-pod
+spec:
+  containers:
+    - name: container-1
+      image: busybox
+      command: ["sleep","3600"]
+    - name: container-2
+      image: busybox
+      command: ["sleep","3600"]
