@@ -1,0 +1,20 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment1
+spec:
+  replicas: 1
+  selector:  # label selector,必须匹配pod模板中的标签
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:   # label
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 82
