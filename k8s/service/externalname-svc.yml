@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-baidu
+  namespace: yss
+spec:
+  type: ExternalName
+  externalName: baidu.com  # 通过 externalName 指定要访问的外部地址，selector  ports 属性都不要了
