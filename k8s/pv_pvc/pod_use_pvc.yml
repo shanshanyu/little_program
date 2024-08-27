@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-use-pvc
+  namespace: yss
+spec:
+  volumes:
+    - name: host-disk-storage
+      persistentVolumeClaim:
+        claimName: host-disk-pvc
+  containers:
+    - name: nginx-pod
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: 'http-server'
+      volumeMounts:
+        - mountPath: '/usr/share/nginx/html'
+          name: host-disk-storage
