@@ -1,0 +1,29 @@
+V3扩展文件：
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation,digitalSignature,keyEncipherment
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = nginx.itheima.com
+DNS.2 = tomcat.itheima.com
+
+openssl genrsa -out ca.key 2048
+//创建ca公钥
+
+openssl req -x509 -new -nodes -key ca.key -days 5000 -out ca.crt -subj  "/CN=nginx.itheima.com"
+//创建ca证书
+
+openssl genrsa -out ingress.key 2048
+//创建ingress私钥
+
+openssl req -new -key ingress.key -out ingress.csr -subj "/CN=nginx.itheima.com" -config openssl.cnf
+//创建ingress CSR
+
+openssl x509 -req -in ingress.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out ingress.crt -days 5000 -extensions v3_req -extfile openssl.cnf
+//创建ingress证书
+
+kubectl create secret tls mywebsite-ingress-secret --key ingress.key --cert ingress.crt

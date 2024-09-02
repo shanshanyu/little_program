@@ -1,0 +1,37 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mywebsite-ingress-https
+  namespace: yss
+spec:
+  ingressClassName: nginx
+  tls:
+    - secretName: mywebsite-ingress-secret
+      hosts:
+        - nginx.itheima.com
+
+  rules:
+    - host: nginx.itheima.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nginx-svc  #这个svc可以定义成headless svc
+                port:
+                  number: 8080
+    - host: tomcat.itheima.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: tomcat-svc  #这个svc可以定义成headless svc
+                port:
+                  number: 8080
+
+
+
