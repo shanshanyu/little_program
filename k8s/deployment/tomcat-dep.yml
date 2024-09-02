@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: tomcat  # 容器的名字就叫tomcat
-          image: tomcat
+          image: tomcat:8.5-jre10-slim
           ports:
             - containerPort: 8080  # tomcat默认端口8080

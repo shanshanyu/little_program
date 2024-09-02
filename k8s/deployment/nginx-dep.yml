@@ -2,7 +2,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment1
+  name: nginx-dep
+  namespace: yss
 spec:
   replicas: 1
   selector:  # label selector,必须匹配pod模板中的标签

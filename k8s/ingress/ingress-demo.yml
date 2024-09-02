@@ -1,0 +1,32 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mywebsite-ingress
+  namespace: yss
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: nginx.yss.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nginx-svc  #这个svc可以定义成headless svc
+                port:
+                  number: 8080
+    - host: tomcat.yss.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: tomcat-svc  #这个svc可以定义成headless svc
+                port:
+                  number: 8080
+
+
+
