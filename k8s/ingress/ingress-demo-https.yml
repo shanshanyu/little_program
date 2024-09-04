@@ -10,6 +10,7 @@ spec:
     - secretName: mywebsite-ingress-secret
       hosts:
         - nginx.itheima.com
+        - tomcat.itheima.com
 
   rules:
     - host: nginx.itheima.com
