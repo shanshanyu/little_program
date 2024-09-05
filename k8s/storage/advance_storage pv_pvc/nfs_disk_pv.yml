@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv1  # pv属于集群资源，不需要设置namespace，设置了也不起效果
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    path: /data/nfs_pv1
+    server: 123.56.222.255
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv2  # pv属于集群资源，不需要设置namespace，设置了也不起效果
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    path: /data/nfs_pv2
+    server: 123.56.222.255
+
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv3  # pv属于集群资源，不需要设置namespace，设置了也不起效果
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    path: /data/nfs_pv3
+    server: 123.56.222.255

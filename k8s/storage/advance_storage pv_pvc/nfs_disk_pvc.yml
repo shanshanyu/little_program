@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc1
+  namespace: yss  #pvc有namespace的概念
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc2
+  namespace: yss  #pvc有namespace的概念
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc3
+  namespace: yss  #pvc有namespace的概念
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+

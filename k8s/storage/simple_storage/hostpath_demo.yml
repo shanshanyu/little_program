@@ -1,0 +1,28 @@
+#创建两个容器nginx和busybox，然后分别挂载在 /var/log/nginx和 /log下，busybox将日志都到控制台
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hostpath-pod
+  namespace: yss
+spec:
+  volumes:
+    - name: data-vol
+      hostPath:
+        path: /tmp
+  containers:
+    - name: nginx
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /var/log/nginx
+          name: data-vol
+    - name: busybox
+      image: busybox
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /log
+          name: data-vol
+      command: ["/bin/sh","-c","tail -f /log/access.log"]
+
+
+

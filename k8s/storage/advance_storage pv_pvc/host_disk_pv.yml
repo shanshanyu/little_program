@@ -1,8 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: pv-host
-  namespace: yss
+  name: pv-host   # pv属于集群资源，不需要设置namespace，设置了也不起效果
 spec:
   storageClassName: manual
   capacity:
