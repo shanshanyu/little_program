@@ -1,0 +1,9 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: authorization-role
+  namespace: yss
+rules:
+  - apiGroups: [""]   # "" represents the core API group and "*" represents all API groups.
+    resources: ["pods"]  #   '*' represents all resources.
+    verbs: ["get","watch","list"]
