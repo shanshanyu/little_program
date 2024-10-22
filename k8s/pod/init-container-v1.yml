@@ -1,0 +1,38 @@
+---
+# 把nginx pod的首页变成 baidu.com
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-container-v1
+  namespace: yss
+spec:
+  volumes:
+    - name: workdir
+      emptyDir: {}
+  initContainers:
+    - name: download
+      image: busybox   # 在这种情况下，默认是Always（省略imagePullPolicy，image没加标签）
+      imagePullPolicy: IfNotPresent
+      command:
+        - wget
+        - -O
+        - /work-dir/index.html
+        - https://baidu.com
+      volumeMounts:
+        - name: workdir
+          mountPath: /work-dir
+
+  containers:
+    - name: nginx
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - name: workdir
+          mountPath: /usr/share/nginx/html
+      ports:
+        - containerPort: 80
+          name: nginx-port
+          hostPort: 8080
+          protocol: TCP
+
+

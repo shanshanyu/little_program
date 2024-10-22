@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-hook-exec
+  namespace: yss
+spec:
+  containers:
+    - name: main-container
+      image: nginx
+      ports:
+        - name: nginx-port
+          containerPort: 80
+      lifecycle:
+        postStart:
+          exec:   #钩子有三种形式，exec,httpGet,tcpSocket
+            command: ["/bin/sh","-c",'echo post start exec.. > /usr/share/nginx/html/index.html']
+        preStop:
+          exec:
+            command: ['/usr/sbin/nginx''-s','stop']  #终止容器前，先停止nginx
