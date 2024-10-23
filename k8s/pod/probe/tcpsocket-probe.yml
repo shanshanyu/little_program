@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-probe-liveness
+  namespace: yss
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: nginx-port
+          containerPort: 80
+      livenessProbe:
+        tcpSocket:  #通过tcpSocket的livenessprobe检测pod是否可用
+          port: 80
+
+
