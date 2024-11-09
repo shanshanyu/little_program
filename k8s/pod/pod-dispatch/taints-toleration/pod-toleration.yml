@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-toleration
+  namespace: yss
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      imagePullPolicy: IfNotPresent
+  tolerations:
+    - key: tag
+      operator: Equal
+      value: k8s3
+      effect: NoSchedule

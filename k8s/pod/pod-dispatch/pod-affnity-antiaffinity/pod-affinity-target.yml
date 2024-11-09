@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-affinity-target
+  namespace: yss
+  labels:
+    env: test  #设置标签，让其他pod能通过pod-affnity策略选择到这个pod
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      imagePullPolicy: IfNotPresent
+  nodeSelector:
+    env: prod

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-affinity-required
+  namespace: yss
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      imagePullPolicy: IfNotPresent
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: env
+                operator: In
+                values: ['abc','prod','test']  #要求pod的标签在abc或prod之中
+          topologyKey: 'kubernetes.io/hostname'
+
+

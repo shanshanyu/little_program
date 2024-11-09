@@ -5,7 +5,7 @@ kind: ReplicationController
 metadata:
   name: rc-demo
   labels:
-    app: rc
+    app: rc   #这个是 rc 的标签，不是 pod 的标签
 spec:
   # spec 里面有 replicas  selector  template(最主要的)
   replicas: 1
