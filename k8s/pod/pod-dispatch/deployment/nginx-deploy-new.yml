@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deploy-new
+  namespace: yss
+spec:
+  replicas: 3
+  selector: #选择器
+    matchLabels:
+      app: nginx-pod
+    matchExpressions:
+      - { key: app,operator: In,values: [ nginx-pod ] }  #两者选一个
+  template:
+    metadata:
+      labels:
+        app: nginx-pod
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+  revisionHistoryLimit: 3 #保留历史版本，默认是 10
+  paused: false  #暂停部署，默认为 false
+  progressDeadlineSeconds: 600  #部署超市时间，默认 600s
+  strategy:
+    type: RollingUpdate  #滚动更新策略   还有一种策略Recreate
+    rollingUpdate:  #滚动更新
+      maxSurge: 30%  #最大额外可用存在的副本数，可以是百分比，也可以是整数
+      maxUnavailable: 30%   #最大不可用状态的pod的最大值，可以是百分比，也可以是整数
+
