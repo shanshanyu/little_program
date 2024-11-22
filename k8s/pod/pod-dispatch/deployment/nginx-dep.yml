@@ -2,20 +2,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-dep
+  name: nginx-cpu-limit
   namespace: yss
 spec:
   replicas: 1
   selector:  # label selector,必须匹配pod模板中的标签
     matchLabels:
-      app: nginx
+      app: nginx-limit
   template:
     metadata:
       labels:   # label
-        app: nginx
+        app: nginx-limit
     spec:
       containers:
         - name: nginx
-          image: nginx
+          image: nginx:1.17.1
           ports:
             - containerPort: 82
+          resources:
+            requests:
+              cpu: 100m  #pod的最小资源使用  10%
+            limits:
+              cpu: 1000m #限制cpu使用  100%

@@ -1,0 +1,22 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-pod-autoscaler
+  namespace: yss
+spec:
+  scaleTargetRef: #指定要控制的信息
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx-cpu-limit
+  minReplicas: 1 #最小pod数量
+  maxReplicas: 10  #最大pod数量
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50  #pod的使用率超过 80%
+
+
+
