@@ -12,7 +12,7 @@ DNS.1 = nginx.itheima.com
 DNS.2 = tomcat.itheima.com
 
 openssl genrsa -out ca.key 2048
-//创建ca公钥
+//创建ca私钥
 
 openssl req -x509 -new -nodes -key ca.key -days 5000 -out ca.crt -subj  "/CN=nginx.itheima.com"
 //创建ca证书
