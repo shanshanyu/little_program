@@ -1,0 +1,12 @@
+#指定基础镜像
+FROM ubuntu:16.04  
+#安装jdk8，ubuntu 16.04 没有jdk7了，清理包
+RUN apt-get update && \
+    apt-get install -y openjdk-8-jdk && \
+    rm -rf /var/lib/apt/lists/*
+#指定工作目录
+WORKDIR /data   
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+
+CMD ["bash"]
