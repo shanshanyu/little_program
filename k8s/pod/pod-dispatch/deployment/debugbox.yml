@@ -1,0 +1,26 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-busybox
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: busybox
+  template:
+    metadata:
+      labels:
+        app: busybox
+    spec:
+      containers:
+        - name: busybox1
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command: ["sh","-c","sleep 3600"]
+        - name: busybox2
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command: [ "sh","-c","sleep 3600" ]
+
