@@ -1,8 +1,7 @@
 ---
 #配置docker开机启动
 
-- name: Start and enable Docker service
+- name: enable Docker service
   service:
     name: docker
-    state: started
     enabled: yes
