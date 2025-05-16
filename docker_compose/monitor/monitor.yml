@@ -1,0 +1,89 @@
+---
+# 新版本已经不需要version字段，默认用最新
+services:
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus   #默认会使用项目名称_服务名称_序号
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml  # 告警规则文件
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    depends_on:
+      - thanos-receiver
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    ports:
+      - "9093:9093"
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  thanos-receiver:
+    image: thanosio/thanos:latest
+    container_name: thanos_receiver
+    command:
+      - receive
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --remote-write.address=0.0.0.0:10903
+      - --tsdb.path=/thanos-receive-data
+    volumes:
+      - thanos_receiver_data:/thanos-receive-data
+    ports:
+      - "10901:10901"  # gRPC (Query 访问)
+      - "10902:10902"  # HTTP (状态页)
+      - "10903:10903"  # 远程写入端口
+    restart: unless-stopped
+
+  thanos-query:
+    image: thanosio/thanos:latest
+    container_name: thanos-query
+    command:
+      - query
+      - --http-address=0.0.0.0:10904
+      - --store=thanos-receiver:10901
+    ports:
+      - "10904:10904"  # Web UI
+    restart: unless-stopped
+    depends_on:
+      - thanos-receiver
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    command:
+      - "grafana"
+      - "server"
+      - "--config=/etc/grafana/grafana.ini"  # 默认就是此路径，无需修改
+      - "--homepath=/usr/share/grafana"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning  # 预配置数据源
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      - thanos-query
+volumes:
+  prometheus_data:
+  alertmanager_data:
+  thanos_receiver_data:
+  grafana_data:
+
+
