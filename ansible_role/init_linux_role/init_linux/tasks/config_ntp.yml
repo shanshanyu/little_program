@@ -1,0 +1,10 @@
+---
+#设置ntp服务器
+
+- name: Configure NTP servers
+  lineinfile:
+    path: /etc/ntp.conf
+    line: "server {{ item }} iburst"
+    state: present
+  loop: "{{ ntp_servers }}"
+  notify: restart ntp

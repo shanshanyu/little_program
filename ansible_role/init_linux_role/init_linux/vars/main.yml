@@ -1,0 +1,4 @@
+---
+# vars file for init_linux
+
+umask_value: "022"

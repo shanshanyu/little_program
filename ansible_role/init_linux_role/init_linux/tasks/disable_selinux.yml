@@ -1,0 +1,5 @@
+#关闭selinux
+
+- name: Disable SELinux
+  selinux:
+    state: disabled

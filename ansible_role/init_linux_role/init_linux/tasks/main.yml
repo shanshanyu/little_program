@@ -1,0 +1,19 @@
+---
+# tasks file for init_linux
+- include: disable_firewalld.yml
+- include: disable_selinux.yml
+- include: disable_swap.yml
+- include: install_basic_package.yml
+- include: create_user.yml
+- include: optimize_sysctl.yml
+- include: optimize_limits.yml
+- include: config_umask.yml
+- include: config_timezone.yml
+- include: config_ntp.yml
+- include: config_fail2ban.yml
+- include: start_ntp.yml
+- include: add_docker_repo.yml
+- include: install_docker.yml
+#- include: install_docker_compose.yml
+- include: config_docker.yml
+

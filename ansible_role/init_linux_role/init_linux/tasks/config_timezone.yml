@@ -1,0 +1,7 @@
+---
+
+#设置时区
+
+- name: Set timezone to Asia/Shanghai
+  timezone:
+    name: Asia/Shanghai

@@ -1,0 +1,31 @@
+---
+# defaults file for init_linux
+
+# 需要安装的基础软件包
+base_packages:
+  - vim
+  - wget
+  - curl
+  - net-tools
+  - lsof
+  - ntp
+  - ntpdate
+  - telnet
+  - fail2ban
+
+
+# 需要创建的用户列表
+users_to_create:
+  - name: yushanshan
+    password: $6$9CkP6O/npOAyvkyw$zBHuHe9PRkxJ2fEuIubYoI9v82o7LkuGWmb/BJOTlbA/ojh4fy4raWi0THHEIk6zPuBGLUymDEpFE/4b/kU001
+  - name: shence
+    password: $6$9CkP6O/npOAyvkyw$zBHuHe9PRkxJ2fEuIubYoI9v82o7LkuGWmb/BJOTlbA/ojh4fy4raWi0THHEIk6zPuBGLUymDEpFE/4b/kU001
+
+# NTP 服务器列表
+ntp_servers:
+  - 0.cn.pool.ntp.org
+  - ntp.aliyun.com
+
+
+
+

@@ -1,0 +1,11 @@
+---
+
+#设置umask
+
+- name: Set default umask
+  lineinfile:
+    path: /etc/profile
+    line: 'umask 022'
+    insertafter: EOF
+
+#insertafter eof 表示插入在末尾

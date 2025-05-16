@@ -1,0 +1,9 @@
+---
+
+#启动ntp服务
+
+- name: Start and enable NTP service
+  service:
+    name: ntpd
+    state: started
+    enabled: yes

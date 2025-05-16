@@ -1,0 +1,11 @@
+---
+
+#创建用户
+
+- name: Create users
+  user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    shell: /bin/bash
+    append: yes
+  loop: "{{ users_to_create }}"

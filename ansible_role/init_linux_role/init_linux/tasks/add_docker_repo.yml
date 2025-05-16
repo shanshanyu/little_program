@@ -1,0 +1,11 @@
+---
+
+#添加docker repo源
+
+- name: add docker repo
+  copy:
+    src: files/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    owner: root
+    group: root
+    mode: 0644

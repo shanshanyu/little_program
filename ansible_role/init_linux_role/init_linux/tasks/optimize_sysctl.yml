@@ -1,0 +1,11 @@
+---
+#优化内核参数
+
+- name: Configure sysctl
+  copy:
+    src: files/sysctl.conf
+    dest: /etc/sysctl.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: reload sysctl

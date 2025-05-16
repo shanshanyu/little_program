@@ -1,0 +1,15 @@
+---
+
+#关闭防火墙
+
+- name: Disable firewalld
+  service:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+- name: Disable swap permanently
+  lineinfile:
+    path: /etc/fstab
+    state: absent
+    regexp: '^.*swap.*'

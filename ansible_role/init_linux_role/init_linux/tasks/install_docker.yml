@@ -1,0 +1,8 @@
+---
+
+#安装docker
+
+- name: Install Docker
+  yum:
+    name: docker-ce
+    state: present

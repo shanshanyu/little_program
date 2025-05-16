@@ -1,0 +1,11 @@
+---
+#配置docker加速器
+
+- name: Configure Docker daemon
+  copy:
+    src: files/docker-daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart docker
