@@ -5,15 +5,25 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: ['alertmanager:9093']  # 指向Alertmanager
+        - targets: ['172.19.249.108:9093']  # 指向Alertmanager
 
 rule_files:
   - '/etc/prometheus/alert_rules.yml'  # 告警规则路径
 
 remote_write:
-  - url: http://thanos-receiver:10903/api/v1/receive  # 远程写入到Thanos
+  - url: http://172.19.249.108:10903/api/v1/receive  # 远程写入到Thanos
 
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  # 新增node_exporter监控
+  - job_name: 'node'
+    static_configs:
+      - targets: [ '172.19.249.108:9100' ]
+    relabel_configs:
+      - source_labels: [ __address__ ]
+        target_label: instance
+        regex: '(.*):\d+'
+        replacement: '${1}'  # 去除端口号显示

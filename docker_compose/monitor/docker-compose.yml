@@ -34,15 +34,28 @@ services:
     depends_on:
       - prometheus
 
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+    volumes:
+      - /:/host:ro,rslave  # 挂载宿主机根目录（只读）
+    pid: host  # 共享宿主机的PID命名空间
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+
   thanos-receiver:
-    image: thanosio/thanos:latest
-    container_name: thanos_receiver
+    image: thanosio/thanos:v0.32.1
+    container_name: thanos-receiver
     command:
       - receive
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --remote-write.address=0.0.0.0:10903
       - --tsdb.path=/thanos-receive-data
+      - --label=receive_replica="receiver-1"
     volumes:
       - thanos_receiver_data:/thanos-receive-data
     ports:
@@ -52,12 +65,12 @@ services:
     restart: unless-stopped
 
   thanos-query:
-    image: thanosio/thanos:latest
+    image: thanosio/thanos:v0.32.1
     container_name: thanos-query
     command:
       - query
       - --http-address=0.0.0.0:10904
-      - --store=thanos-receiver:10901
+      - --store=172.19.249.108:10901
     ports:
       - "10904:10904"  # Web UI
     restart: unless-stopped
@@ -84,6 +97,11 @@ volumes:
   prometheus_data:
   alertmanager_data:
   thanos_receiver_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /thanos-receive-data
   grafana_data:
 
 
