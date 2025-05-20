@@ -1,6 +1,6 @@
 ---
 global:
-  smtp_smarthost: 'smtp.exmail.qq.com:465'
+  smtp_smarthost: 'smtp.qq.com:465'
   smtp_from: '1525996190@qq.com'
   smtp_auth_username: '1525996190@qq.com'
   smtp_auth_password: 'gszcljszrjnihbed'

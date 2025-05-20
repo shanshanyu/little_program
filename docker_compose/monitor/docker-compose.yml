@@ -12,8 +12,10 @@ services:
       - --remote-write.address=0.0.0.0:10903
       - --tsdb.path=/thanos-receive-data
       - --label=receive_replica="receiver-1"
+      - --objstore.config-file=/etc/thanos/oss-bucket.yaml
     volumes:
       - thanos_receiver_data:/thanos-receive-data
+      - ./oss-config:/etc/thanos  #把 oss-config 目录挂载到容器的 /etc/thanos 目录
     ports:
       - "10901:10901"  # gRPC (Query 访问)
       - "10902:10902"  # HTTP (状态页)
@@ -26,13 +28,15 @@ services:
     command:
       - query
       - --http-address=0.0.0.0:10904
-      - --store=172.19.249.108:10901
+      - --store=172.19.249.108:10901  # 添加receiver作为数据源
       - --store=172.19.249.108:10906  # 添加Ruler作为数据源
+      - --store=172.19.249.108:10907  # 添加 store 作为数据源，通过store gateway 去查询对象存储里面的数据
     ports:
       - "10904:10904"  # Web UI
     restart: unless-stopped
     depends_on:
       - thanos-receiver
+      - thanos-ruler
 
   thanos-ruler:
     image: thanosio/thanos:v0.32.1
@@ -45,13 +49,50 @@ services:
       - --label=rule_replica="ruler-1"
       - --data-dir=/thanos-ruler-data
       - --rule-file=/etc/thanos/rules/*.yml  # 规则文件路径
+      - --objstore.config-file=/etc/thanos/oss-bucket.yaml
     volumes:
       - ./thanos-rules:/etc/thanos/rules  # 挂载规则文件目录
       - thanos_ruler_data:/thanos-ruler-data
+      - ./oss-config:/etc/thanos
     ports:
       - "10905:10905"  # HTTP UI
       - "10906:10906"  # gRPC
     restart: unless-stopped
+
+#存储网关 store gateway
+  thanos-store:
+    image: thanosio/thanos:v0.32.1
+    container_name: thanos-store
+    command:
+      - store
+      - --http-address=0.0.0.0:10908  #http
+      - --grpc-address=0.0.0.0:10907  #grpc
+      - --data-dir=/thanos-store-data
+      - --objstore.config-file=/etc/thanos/oss-bucket.yaml
+    volumes:
+      - ./oss-config:/etc/thanos
+      - thanos_store_data:/thanos-store-data
+    ports:
+      - "10907:10907"  # gRPC
+      - "10908:10908"  # HTTP
+    restart: unless-stopped
+
+  thanos-compact:
+    image: thanosio/thanos:v0.32.1
+    container_name: thanos-compact
+    command:
+      - compact
+      - --http-address=0.0.0.0:10909
+      - --data-dir=/thanos-compact-data
+      - --objstore.config-file=/etc/thanos/oss-bucket.yaml
+      - --wait  #持续运行，默认每隔 30min 执行一次
+    volumes:
+      - ./oss-config:/etc/thanos
+      - thanos_compact_data:/thanos-compact-data
+    ports:
+      - "10909:10909"  # HTTP
+    restart: unless-stopped
+
 
   grafana:
     image: grafana/grafana:latest
@@ -84,5 +125,17 @@ volumes:
       type: none
       o: bind
       device: /thanos-ruler-data
+  thanos_compact_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /thanos-compact-data
+  thanos_store_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /thanos-store-data
 
 
