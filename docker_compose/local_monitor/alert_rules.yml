@@ -1,0 +1,20 @@
+---
+groups:
+- name: test
+  rules:
+    - alert: server status
+      expr: up == 0
+      for: 10s
+      labels:
+        severity: critical
+        service: node
+      annotations:
+        summary: "{{$labels.instance}}: instance down"
+        description: "{{$labels.instance}}: instance down"
+
+    - alert: HostOutOfMemory
+      expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 50
+      for: 1m
+      labels:
+        severity: critical
+

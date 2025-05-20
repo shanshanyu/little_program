@@ -24,6 +24,6 @@ scrape_configs:
       - targets: [ '172.19.249.108:9100' ]
     relabel_configs:
       - source_labels: [ __address__ ]
-        target_label: instance
+        target_label: test
         regex: '(.*):\d+'
         replacement: '${1}'  # 去除端口号显示

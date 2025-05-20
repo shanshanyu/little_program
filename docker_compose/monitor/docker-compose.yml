@@ -2,50 +2,6 @@
 # 新版本已经不需要version字段，默认用最新
 services:
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus   #默认会使用项目名称_服务名称_序号
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.enable-lifecycle'
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml  # 告警规则文件
-      - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
-    restart: unless-stopped
-    depends_on:
-      - thanos-receiver
-
-  alertmanager:
-    image: prom/alertmanager:latest
-    container_name: alertmanager
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-    volumes:
-      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
-      - alertmanager_data:/alertmanager
-    ports:
-      - "9093:9093"
-    restart: unless-stopped
-    depends_on:
-      - prometheus
-
-  node_exporter:
-    image: prom/node-exporter:latest
-    container_name: node_exporter
-    command:
-      - '--path.rootfs=/host'
-    volumes:
-      - /:/host:ro,rslave  # 挂载宿主机根目录（只读）
-    pid: host  # 共享宿主机的PID命名空间
-    restart: unless-stopped
-    ports:
-      - "9100:9100"
-
   thanos-receiver:
     image: thanosio/thanos:v0.32.1
     container_name: thanos-receiver
@@ -71,11 +27,31 @@ services:
       - query
       - --http-address=0.0.0.0:10904
       - --store=172.19.249.108:10901
+      - --store=172.19.249.108:10906  # 添加Ruler作为数据源
     ports:
       - "10904:10904"  # Web UI
     restart: unless-stopped
     depends_on:
       - thanos-receiver
+
+  thanos-ruler:
+    image: thanosio/thanos:v0.32.1
+    container_name: thanos-ruler
+    command:
+      - rule
+      - --http-address=0.0.0.0:10905
+      - --grpc-address=0.0.0.0:10906
+      - --query=thanos-query:10904  # 查询数据源
+      - --label=rule_replica="ruler-1"
+      - --data-dir=/thanos-ruler-data
+      - --rule-file=/etc/thanos/rules/*.yml  # 规则文件路径
+    volumes:
+      - ./thanos-rules:/etc/thanos/rules  # 挂载规则文件目录
+      - thanos_ruler_data:/thanos-ruler-data
+    ports:
+      - "10905:10905"  # HTTP UI
+      - "10906:10906"  # gRPC
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
@@ -93,9 +69,8 @@ services:
     restart: unless-stopped
     depends_on:
       - thanos-query
+
 volumes:
-  prometheus_data:
-  alertmanager_data:
   thanos_receiver_data:
     driver: local
     driver_opts:
@@ -103,5 +78,11 @@ volumes:
       o: bind
       device: /thanos-receive-data
   grafana_data:
+  thanos_ruler_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /thanos-ruler-data
 
 

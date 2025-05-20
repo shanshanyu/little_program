@@ -1,0 +1,9 @@
+---
+groups:
+- name: example
+  rules:
+  - alert: HostOutOfMemory
+    expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 50
+    for: 5m
+    labels:
+      severity: critical
