@@ -2,6 +2,6 @@ type: ALIYUNOSS
 config:
   endpoint: "oss-cn-hangzhou-internal.aliyuncs.com"  # 替换为你的OSS endpoint
   bucket: "monitor-oss-yss"                # 替换为你的bucket名称
-  # 替换为你的access key
-  # 替换为你的secret key
+  access_key_id: ""
+  access_key_secret: ""
   prefix: ""
