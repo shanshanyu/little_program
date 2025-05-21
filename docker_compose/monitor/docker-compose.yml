@@ -45,7 +45,8 @@ services:
       - rule
       - --http-address=0.0.0.0:10905
       - --grpc-address=0.0.0.0:10906
-      - --query=thanos-query:10904  # 查询数据源
+      - --query=172.19.249.108:10904  # 查询数据源
+      - --alertmanagers.url=http://172.19.249.108:9093
       - --label=rule_replica="ruler-1"
       - --data-dir=/thanos-ruler-data
       - --rule-file=/etc/thanos/rules/*.yml  # 规则文件路径
@@ -93,7 +94,6 @@ services:
       - "10909:10909"  # HTTP
     restart: unless-stopped
 
-
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -110,6 +110,20 @@ services:
     restart: unless-stopped
     depends_on:
       - thanos-query
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: thanos_alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - thanos_alertmanager_data:/alertmanager
+    ports:
+      - "9093:9093"
+    restart: unless-stopped
+
 
 volumes:
   thanos_receiver_data:
@@ -137,5 +151,6 @@ volumes:
       type: none
       o: bind
       device: /thanos-store-data
+  thanos_alertmanager_data:
 
 

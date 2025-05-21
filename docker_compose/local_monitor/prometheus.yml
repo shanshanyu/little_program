@@ -8,7 +8,7 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: ['172.19.249.108:9093']  # 指向Alertmanager
+        - targets: ['172.19.249.108:9099']  # 指向Alertmanager,不用这个alertmanager，用thanos docker-compose中的alertmanager
 
 rule_files:
   - '/etc/prometheus/alert_rules.yml'  # 告警规则路径
