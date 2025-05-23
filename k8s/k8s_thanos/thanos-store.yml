@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: thanos-store
+  namespace: monitoring
+spec:
+  replicas: 2
+  serviceName: thanos-store
+  selector:
+    matchLabels:
+      app: thanos-store
+  template:
+    metadata:
+      labels:
+        app: thanos-store
+    spec:
+      containers:
+        - name: thanos
+          image: thanosio/thanos:v0.32.1
+          args:
+            - "store"
+            - "--http-address=0.0.0.0:10908"
+            - "--grpc-address=0.0.0.0:10907"
+            - "--objstore.config-file=/etc/thanos/objstore.yaml"
+            - "--data-dir=/data"
+          ports:
+            - name: http
+              containerPort: 10908
+            - name: grpc
+              containerPort: 10907
+          volumeMounts:
+            - name: objstore-config
+              mountPath: /etc/thanos
+            - name: tmp-data
+              mountPath: /data
+      volumes:
+        - name: objstore-config
+          secret:
+            secretName: thanos-objstore-config
+        - name: tmp-data  #使用临时目录
+          emptyDir: {}
+
+      # store gateway不需要持久化存储，在内存中放对象块的索引缓存
+
+
+

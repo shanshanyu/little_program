@@ -1,0 +1,4 @@
+type: ALIYUNOSS
+config:
+  #xx 保密信息
+  prefix: ""

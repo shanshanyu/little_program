@@ -1,0 +1,131 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: thanos-compact-k8s2
+spec:  #spec里面没加volumeMode，默认用的Filesystem
+  storageClassName: local-storage
+  capacity:
+    storage: 3Gi  # 根据实际磁盘大小调整
+  accessModes:
+    - ReadWriteOnce
+  local:  #local比hostpath有优势，支持延迟绑定，加上亲和性就可以保证调度到指定节点
+    path: /thanos-data/compact
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s2  # 替换为实际节点名称
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: thanos-compact-k8s3
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 3Gi  # 根据实际磁盘大小调整
+  accessModes:
+    - ReadWriteOnce
+  local:
+    path: /thanos-data/compact
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s3  # 替换为实际节点名称
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: thanos-receiver-k8s2
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 3Gi  # 根据实际磁盘大小调整
+  accessModes:
+    - ReadWriteOnce
+  local:  #local比hostpath有优势，支持延迟绑定，加上亲和性就可以保证调度到指定节点
+    path: /thanos-data/receiver
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s2  # 替换为实际节点名称
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: thanos-receiver-k8s3
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 3Gi  # 根据实际磁盘大小调整
+  accessModes:
+    - ReadWriteOnce
+  local:  #local比hostpath有优势，支持延迟绑定，加上亲和性就可以保证调度到指定节点
+    path: /thanos-data/receiver
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s3  # 替换为实际节点名称
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: thanos-ruler-k8s2
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 3Gi  # 根据实际磁盘大小调整
+  accessModes:
+    - ReadWriteOnce
+  local:  #local比hostpath有优势，支持延迟绑定，加上亲和性就可以保证调度到指定节点
+    path: /thanos-data/ruler
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s2  # 替换为实际节点名称
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: thanos-ruler-k8s3
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 3Gi  # 根据实际磁盘大小调整
+  accessModes:
+    - ReadWriteOnce
+  local:  #local比hostpath有优势，支持延迟绑定，加上亲和性就可以保证调度到指定节点
+    path: /thanos-data/ruler
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s3  # 替换为实际节点名称

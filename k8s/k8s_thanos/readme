@@ -1,0 +1,27 @@
+# 1. 创建命名空间
+kubectl create ns monitoring
+
+# 2. 创建Secret
+kubectl create secret generic thanos-objstore-config \
+  --from-file=objstore.yaml=./oss-bucket.yaml \
+  -n monitoring
+
+# 3. 部署规则
+kubectl apply -f thanos-rules-cm.yaml
+
+#4. 添加sc pv
+ kubectl apply -f local-storageclass.yml
+ kubectl apply -f local_pv.yml
+
+# 5. 部署所有组件
+kubectl apply -f .
+# 包含以下文件：
+# - thanos-receiver.yaml
+# - thanos-query.yaml
+# - thanos-store.yaml
+# - thanos-compact.yaml
+# - thanos-ruler.yaml
+# - thanos-services.yaml
+
+#6. 创建 thanos receiver 的 ingress
+ kubectl create -f thanos-receiver-ingress.yml

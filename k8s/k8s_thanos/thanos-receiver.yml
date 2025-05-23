@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: thanos-receiver
+  namespace: monitoring
+spec:
+  replicas: 2
+  serviceName: thanos-receiver  #必选
+  selector:
+    matchLabels:
+      app: thanos-receiver
+  template:
+    metadata:
+      labels:
+        app: thanos-receiver
+    spec:
+      containers:
+        - name: thanos
+          image: thanosio/thanos:v0.32.1
+          args:
+            - "receive"
+            - "--grpc-address=0.0.0.0:10901" #grpc
+            - "--http-address=0.0.0.0:10902"  #http
+            - "--remote-write.address=0.0.0.0:10903"  #这个端口需要开放，可以新增一个svc专门对外部访问
+            - "--tsdb.path=/data"
+            - "--objstore.config-file=/etc/thanos/objstore.yaml"
+            - "--label=replica=\"$(POD_NAME)\""  # 动态标签
+            - "--label=receive=\"true\""
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - containerPort: 10901
+              name: grpc
+            - containerPort: 10902
+              name: http
+            - containerPort: 10903
+              name: remote-write
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: objstore-config
+              mountPath: /etc/thanos
+      volumes:  #和containers同级
+        - name: objstore-config
+          secret:
+            secretName: thanos-objstore-config
+  volumeClaimTemplates:  #需要 pvc 存储
+    - metadata:
+        name: data
+      spec:
+        storageClassName: local-storage
+        accessModes: ['ReadWriteOnce']
+        resources:
+          requests:
+            storage: 1Gi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

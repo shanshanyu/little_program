@@ -1,0 +1,8 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner  # 关键：声明手动管理
+volumeBindingMode: WaitForFirstConsumer    # 延迟绑定，确保Pod调度到有磁盘的节点
+reclaimPolicy: Retain                     # 保留数据，手动清理

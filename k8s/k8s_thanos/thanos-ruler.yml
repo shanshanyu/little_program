@@ -1,0 +1,62 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: thanos-ruler
+  namespace: monitoring
+spec:
+  replicas: 2
+  serviceName: thanos-ruler
+  selector:
+    matchLabels:
+      app: thanos-ruler
+  template:
+    metadata:
+      labels:
+        app: thanos-ruler
+    spec:
+      containers:
+        - name: thanos
+          image: thanosio/thanos:v0.32.1
+          args:
+            - "rule"
+            - "--http-address=0.0.0.0:10905"
+            - "--grpc-address=0.0.0.0:10906"
+            - "--query=thanos-query.monitoring.svc.cluster.local:10904"
+            - "--data-dir=/data"
+            - "--rule-file=/etc/thanos/rules/*.yaml"
+            - "--objstore.config-file=/etc/thanos/objstore.yaml"
+            - "--label=rule_replica=\"$(POD_NAME)\""
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - containerPort: 10905
+              name: http
+            - containerPort: 10906
+              name: grpc
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: objstore-config
+              mountPath: /etc/thanos
+            - name: rules
+              mountPath: /etc/thanos/rules
+      volumes:
+        - name: objstore-config
+          secret:
+            secretName: thanos-objstore-config
+        - name: rules
+          configMap:
+            name: thanos-rules
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        storageClassName: local-storage
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
