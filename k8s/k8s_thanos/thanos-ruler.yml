@@ -27,6 +27,8 @@ spec:
             - "--rule-file=/etc/thanos/rules/*.yaml"
             - "--objstore.config-file=/etc/thanos/objstore.yaml"
             - "--label=rule_replica=\"$(POD_NAME)\""
+            - "--alertmanagers.url=http://alertmanager.monitoring.svc.cluster.local:9093"
+            - "--alert.query-url=http://thanos-query.monitoring.svc.cluster.local:10904"  #Ruler 评估告警规则时查询指标数据
           env:
             - name: POD_NAME
               valueFrom:
