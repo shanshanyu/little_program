@@ -25,3 +25,6 @@ kubectl apply -f .
 
 #6. 创建 thanos receiver 的 ingress
  kubectl create -f thanos-receiver-ingress.yml
+
+
+ #需要 alertmanager 和 grafana 的话后续再加上
