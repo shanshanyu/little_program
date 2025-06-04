@@ -40,6 +40,7 @@ services:
     volumes:
       - /:/host:ro,rslave  # 挂载宿主机根目录（只读）
     pid: host  # 共享宿主机的PID命名空间
+    uts: host # 共享宿主机的 UTS 命名空间
     restart: unless-stopped
     ports:
       - "9100:9100"
