@@ -30,3 +30,7 @@ scrape_configs:
         target_label: test
         regex: '(.*):\d+'
         replacement: '${1}'  # 去除端口号显示
+
+  - job_name: 'process_exporter'
+    static_configs:
+      - targets: ['172.19.249.108:9256']

@@ -45,6 +45,17 @@ services:
     ports:
       - "9100:9100"
 
+  process_exporter:
+    image: ncabatoff/process-exporter:latest
+    container_name: process_exporter
+    command:
+      - '--config.path=/etc/process-exporter/config.yml'
+    volumes:
+      - ./process-exporter.yml:/etc/process-exporter/config.yml
+    ports:
+      - "9256:9256"
+    restart: unless-stopped
+
 volumes:
   prometheus_data:
   alertmanager_data:

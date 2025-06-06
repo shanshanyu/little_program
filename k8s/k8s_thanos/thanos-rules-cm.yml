@@ -7,10 +7,328 @@ metadata:
 data:
   rule-1.yaml: |
     groups:
-    - name: example
+    - name: node-exporter-global.alerts
       rules:
-        - alert: HostOutOfMemory
-          expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 50
+        - alert: DiskUsage80Alert
+          expr: 100 - node_filesystem_avail_bytes{fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*'} / node_filesystem_size_bytes{ fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*'} * 100 > 80
+          for: 10m
+          annotations:
+            description: '{{ $labels.instance }} device={{ $labels.device }} fstype={{ $labels.fstype }} mountpoint={{ $labels.mountpoint }} disk usage is above 80% (current value: {{ $value }})'
+            summary: '{{ $labels.instance }} disk usgae is above 80%'
+            value: '{{ $value }}'
+          labels:
+            alarm_alias: 磁盘使用率超80%告警
+            alarm_level: P2
+    
+        - alert: DiskUsage90Alert
+          annotations:
+            description: '{{ $labels.instance }} device={{ $labels.device }} fstype={{ $labels.fstype }} mountpoint={{ $labels.mountpoint }} disk usage is above 90% (current value: {{ $value }})'
+            summary: '{{ $labels.instance }} disk usgae is above 90%'
+            value: '{{ $value }}'
+          expr: |
+            100 - node_filesystem_avail_bytes{fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*'} / node_filesystem_size_bytes{fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*'} * 100 > 90
           for: 5m
           labels:
-            severity: critical
+            alarm_alias: 磁盘使用率超90%告警
+            alarm_level: P1
+    
+        - alert: DiskInodesUsage90Alert
+          annotations:
+            description: '{{ $labels.instance }} device={{ $labels.device }} fstype={{ $labels.fstype }} mountpoint={{ $labels.mountpoint }} disk inode usage is above 90% (current value: {{ $value }})'
+            summary: '{{ $labels.instance }} disk inode usage is too high'
+            value: '{{ $value }}'
+          expr: |
+            100 - node_filesystem_files_free{fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*'} / node_filesystem_files{fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*'} * 100 > 90
+          for: 10m
+          labels:
+            alarm_alias: 磁盘分区索引节点使用率超90%告警
+            alarm_desc: 磁盘分区inode即将耗尽，磁盘索引节点耗尽将导致系统无法创建目录和文件，一般需要具体排查找出大量占用inode节点的目录和文件删除即可
+            alarm_level: P2
+    
+        - alert: DiskMountpointLostAlert
+          annotations:
+            description: '{{ $labels.instance }} mountpoint={{ $labels.mountpoint }} mountpoint lost'
+            summary: '{{ $labels.instance }} mountpoint lost'
+            value: '{{ $value }}'
+          expr: |
+            count by (customer_id, mountpoint)(count by (customer_id,job, instance, mountpoint) (node_filesystem_avail_bytes{ fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*'} offset 72h > 0) unless count by (customer_id, job, instance, mountpoint) (count_over_time(node_filesystem_avail_bytes{fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*'}[60m])))
+          for: 10m
+          labels:
+            alarm_alias: 磁盘挂载点丢失告警
+            alarm_desc: 磁盘挂载点丢失了，三天挂载点有数据上报，现在停止上报了，可能是挂载点挂载异常了，也可能监控指标同步延时了
+            alarm_level: P5
+    
+        - alert: FilesysDevErrAlert
+          annotations:
+            description: '{{ $labels.instance }} device={{ $labels.device }} fstype={{ $labels.fstype }} mountpoint={{ $labels.mountpoint }} filesystem device error'
+            summary: '{{ $labels.instance }} filesystem device error'
+            value: '{{ $value }}'
+          expr: |
+            node_filesystem_device_error{fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*', mountpoint!~".*/docker/devicemapper/.*"} != 0
+          for: 5m
+          labels:
+            alarm_alias: 磁盘设备故障告警
+            alarm_desc: 磁盘设备输入输出错误告警，一般是磁盘坏了
+            alarm_level: P1
+        
+        - alert: FilesysReadonlyAlert
+          annotations:
+            description: '{{ $labels.instance }} device={{ $labels.device }} fstype={{ $labels.fstype }} mountpoint={{ $labels.mountpoint }} filesystem readonly'
+            summary: '{{ $labels.instance }} filesystem readonly'
+            value: '{{ $value }}'
+          expr: |
+            node_filesystem_readonly{fstype!~'rootfs|selinuxfs|autofs|rpc_pipefs|tmpfs|udev|none|devpts|sysfs|debugfs|fuse.*', mountpoint!~'/opt/sentinelone/rpm_mount'} != 0
+          for: 5m
+          labels:
+            alarm_alias: 磁盘只读故障告警
+            alarm_desc: 磁盘只读故障告警，一般是磁盘坏了
+            alarm_level: P1
+    
+        - alert: CPULoad15Alert
+          annotations:
+            description: '{{ $labels.instance }} cpu load15 is more than 3 times the number of cpu cores'
+            summary: '{{ $labels.instance }} cpu load15 is too high'
+            value: '{{ $value }}'
+          expr: |
+            node_load15{} > (count without (cpu, mode)(node_cpu_seconds_total{mode='idle'})) * 3
+          for: 15m
+          labels:
+            alarm_alias: CPU Load15告警
+            alarm_desc: CPU 15m分钟负载大于核心数三倍
+            alarm_level: P5
+        
+        - alert: CPUUsageAlert
+          annotations:
+            description: '{{ $labels.instance }} cpu usage is above 90% for more than 15m minutes (current value: {{ $value }}%)'
+            summary: '{{ $labels.instance }} cpu usage is too high'
+            value: '{{ $value }}'
+          expr: |
+            100 - (avg without(cpu, mode) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+          for: 15m
+          labels:
+            alarm_alias: CPU Usage告警
+            alarm_desc: CPU 使用率超90%且持续15m分钟以上
+            alarm_level: P5
+      
+        - alert: IOUsageAlert
+          annotations:
+            description: '{{ $labels.instance }} IO usage is above 80% for more than 30m minutes (current value: {{ $value }}%)'
+            summary: '{{ $labels.instance }} IO usage is too high'
+            value: '{{ $value }}'
+          expr: |
+            rate(node_disk_io_time_seconds_total{ }[5m]) * 100 > 80
+          for: 30m
+          labels:
+            alarm_alias: IO Usage告警
+            alarm_desc: IO 使用率超80%且持续30m分钟以上
+            alarm_level: P5
+        
+        - alert: MemUsage90Alert
+          annotations:
+            description: '{{ $labels.instance }} memory usage is above 90% (current value: {{ $value }})'
+            summary: '{{ $labels.instance }} memory usgae is too high'
+            value: '{{ $value }}'
+          expr: |
+            100 - ((node_memory_MemFree_bytes{} + node_memory_Cached_bytes{} + node_memory_Buffers_bytes{}) / node_memory_MemTotal_bytes{}) * 100 > 90
+          for: 15m
+          labels:
+            alarm_alias: 内存使用率超90%告警
+            alarm_desc: 内存使用率告警，内存压力大很容易导致系统频繁OOM，一般需要具体排查优化或扩容解决
+            alarm_level: P5
+    
+        - alert: DiskAwaitAlert
+          annotations:
+            description: '{{ $labels.instance }} device={{ $labels.device }} average read / write latency of the disk is higher than 500ms for more than 10 minutes'
+            summary: '{{ $labels.instance }} average read / write latency of the disk is too high'
+            value: '{{ $value }}'
+          expr: |
+              (rate(node_disk_read_time_seconds_total{ }[5m]) + rate(node_disk_write_time_seconds_total{ }[5m])) / (rate(node_disk_reads_completed_total{ }[5m]) + rate(node_disk_writes_completed_total{ }[5m])) * 1000 > 500
+          for: 10m
+          labels:
+            alarm_alias: 磁盘平均读写响应时间告警
+            alarm_desc: 磁盘平均读写响应时间过大，一般考虑磁盘性能是否出现瓶颈
+            alarm_level: P5
+    
+        - alert: MonitorDataCollectionAlert
+          annotations:
+            description: '{{ $labels.instance }} monitoring data collection anomaly for more than 30m'
+            summary: '{{ $labels.instance }} monitoring data collection anomaly'
+            value: '{{ $value }}'
+          expr: |
+            count (up{ } offset 72h > 0) by (customer_id, environment, job, instance) unless sum by (customer_id, environment, job, instance) (sum_over_time(up{ }[5m]))
+          for: 30m
+          labels:
+            alarm_alias: 监控数据收集异常告警
+            alarm_desc: 监控数据收集出现了异常，可能是服务器宕机，宕机一般是服务器失联超30m，也有可能是网络问题导致监控指标无法同步
+            alarm_level: P2
+    
+        - alert: MachineRestartAlert
+          annotations:
+            description: '{{ $labels.instance }} rebooted 1 minutes ago'
+            summary: machine {{ $labels.instance }} restart
+            value: '{{ $value }}'
+          expr: |
+            node_time_seconds{ } - node_boot_time_seconds{ } < 300
+          labels:
+            alarm_alias: 服务器重启告警
+            alarm_level: P1
+    
+        - alert: NodeExporterDownAlert
+          annotations:
+            description: '{{ $labels.instance }}上的Node Exporter模块卡死了，一般重启可以解决'
+            summary: Node Exporter模块Down告警
+            value: '{{ $value }}'
+          expr: |
+            sum by(customer_id, environment,instance) (up{environment="prod"}) == 0
+          for: 15m
+          labels:
+            alarm_alias: Node Exporter模块Down告警
+            alarm_desc: Node Exporter模块卡死了，一般重启可以解决
+            alarm_level: P2
+    
+        - alert: OOMKillDetectedAlert
+          annotations:
+            description: '{{ $labels.instance }} has constant oom kills'
+            summary: host oom kill detected
+            value: '{{ $value }}'
+          expr: |
+            increase(node_vmstat_oom_kill{ }[1h]) > 0
+          for: 5m
+          labels:
+            alarm_alias: OOMKill告警
+            alarm_desc: 系统OOM，说明有进程被系统Kill，一般是系统内存资源不足或程序内存配置不合理导致
+            alarm_level: P5
+    
+    - name: process-exporter-global.alerts
+      rules:
+        - alert: ProcessWorstFDRatioAlert
+          annotations:
+            description: 'the user (user: {{ $labels.groupname }}) of {{ $labels.instance }} worst ratio between open fds and max fds among all procs is above 80% (current value: {{ $value }})'
+            summary: user process takes too many file descriptors
+            value: '{{ $value }}'
+          expr: |
+            namedprocess_namegroup_worst_fd_ratio{groupname!~"java|bash"} * 100 > 80 and namedprocess_namegroup_worst_fd_ratio{groupname!~"java|bash"} != +Inf
+          for: 5m
+          labels:
+            alarm_alias: 进程FD使用率告警
+            alarm_desc: 进程级别文件描述符使用率超80%，一般是bug或者服务异常
+            alarm_level: P2
+
+    - name: prometheus-global.alerts
+      rules:
+        - alert: PrometheusDownAlert
+          annotations:
+            description: '{{ $labels.instance }} prometheus instance down for 1 minutes'
+            summary: prometheus instance down
+            value: '{{ $value }}'
+          expr: |
+            count (up{} offset 72h > 0) by (customer_id, environment,job, instance) unless sum (sum_over_time(up{}[60m])) by (customer_id, environment, job, instance)
+          labels:
+            alarm_alias: 普罗米修斯实例Down
+            alarm_desc: 普罗米修斯实例挂了，一般是Prometheus模块被停了或者是Prometheus所在机器宕机了
+            alarm_level: P2
+    
+        - alert: PrometheusRemoteStorageFailures
+          annotations:
+            description: Prometheus同步指标到远程存储的失败过高，失败率为 {{ printf "%%.1f" $value }}%%
+            summary: Prometheus同步指标到远程存储的失败过高
+          expr: |
+            (
+              (rate(prometheus_remote_storage_failed_samples_total{}[5m]) or rate(prometheus_remote_storage_samples_failed_total{ }[5m]))
+            /
+              (
+                (rate(prometheus_remote_storage_failed_samples_total{}[5m]) or rate(prometheus_remote_storage_samples_failed_total{ }[5m]))
+              +
+                (rate(prometheus_remote_storage_succeeded_samples_total{}[5m]) or rate(prometheus_remote_storage_samples_total{ }[5m]))
+              )
+            )
+            * 100
+            > 5
+          for: 15m
+          labels:
+            alarm_alias: Prometheus同步指标到远程存储的失败过高
+            alarm_desc: Prometheus同步指标到远程存储的失败过高，可能影响指标同步造成告警误报
+            alarm_level: P5
+    
+    - name: pushgateway-global.alerts
+      rules:
+        - alert: PingPacketLossAlert
+          annotations:
+            description: '从 {{ $labels.instance }} 节点到 {{ $labels.dst_instance }} 丢包率过高，可能是目标节点挂了，也可能是节点间的网络出了问题，当前丢包>率为: {{ $value }}%'
+            summary: 到节点 {{ $labels.dst_instance }} 丢包率过高
+            value: '{{ $value }}'
+          expr: |
+            ping_packet_loss_rate{dst_instance!~"metricbeat.sensorsdata.cn|gmetricbeat.sensorsdata.cn|www.baidu.com"} >= 80
+          for: 5m
+          labels:
+            alarm_alias: Ping节点丢包率过高告警
+            alarm_desc: 到目标主机丢包率过高，可能是目标节点挂了，也可能是节点间的网络出了问题
+            alarm_level: P1
+        - alert: DiskDeviceErrorAlert
+          annotations:
+            description: 在 {{ $labels.instance }} 的系统日志中发现了 {{ $labels.device }} 设备的磁盘报错，报错信息为 {{ $labels.reason }}
+            summary: 磁盘故障告警告警
+            value: '{{ $value }}'
+          expr: |
+            sum_over_time(disk_device_error{}[30m]) > 0
+          for: 5m
+          labels:
+            alarm_alias: 磁盘故障告警告警
+            alarm_desc: 目标主机系统日志中发现了磁盘相关报错，可能有丢数据风险
+            alarm_level: P2
+        - alert: PingLatencyAlert
+          annotations:
+            description: '从 {{ $labels.instance }} 节点到 {{ $labels.dst_instance }} Ping延迟过高，可能是节点间的网络出了问题，当前延迟为: {{ $value }}ms'
+            summary: 到节点 {{ $labels.dst_instance }} Ping延迟过高
+            value: '{{ $value }}'
+          expr: |
+            ping_latency_ms{dst_instance!~"www.baidu.com", type="avg"} > 10
+          for: 5m
+          labels:
+            alarm_alias: Ping节点延迟告警
+            alarm_desc: 到目标主机Ping延迟过高，可能是节点间的网络出了问题
+            alarm_level: P1
+        - alert: MachineDownAlert
+          annotations:
+            description: 从 {{ $labels.instance }} 节点到 {{ $labels.dst_instance }} 丢包率100%，可能是目标节点挂了，也可能是节点间的网络出了问题
+            summary: 到节点 {{ $labels.dst_instance }} 丢包率100%
+            value: '{{ $value }}'
+          expr: |
+            ping_packet_loss_rate{dst_instance!~"www.baidu.com"} == 100
+          for: 5m
+          labels:
+            alarm_alias: 节点宕机告警
+            alarm_desc: 到目标主机丢包率100%，可能是目标节点挂了，也可能是节点间的网络出了问题
+            alarm_level: P0
+        - alert: MachineDownAlert
+          annotations:
+            description: '{{ $labels.instance }} 节点监控数据不上报了，可能是服务器宕机，宕机一般是服务器失联超 15m，也有可能是网络问题导致监控指标无法同步'
+            summary: '{{ $labels.instance }} 节点宕机告警'
+            value: '{{ $value }}'
+          expr: |
+            count (up{ } offset 72h > 0) by (customer_id, environment, job, instance) and on(customer_id) count(up{ } offset 72h) by (customer_id, environment,job) == 1 unless sum by (customer_id, environment,job, instance) (sum_over_time(up{ }[5m]))
+          for: 15m
+          labels:
+            alarm_alias: 节点宕机告警
+            alarm_desc: 监控数据不上报了，可能是服务器宕机，宕机一般是服务器失联超15m，也有可能是网络问题导致监控指标无法同步
+            alarm_level: P0
+  
+       
+      
+      
+    
+  
+     
+        
+    
+       
+ 
+     
+  
+        
+      
+    
+ 
+   
+
+    
