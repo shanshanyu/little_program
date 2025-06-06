@@ -288,18 +288,7 @@ data:
             alarm_alias: Ping节点延迟告警
             alarm_desc: 到目标主机Ping延迟过高，可能是节点间的网络出了问题
             alarm_level: P1
-        - alert: MachineDownAlert
-          annotations:
-            description: 从 {{ $labels.instance }} 节点到 {{ $labels.dst_instance }} 丢包率100%，可能是目标节点挂了，也可能是节点间的网络出了问题
-            summary: 到节点 {{ $labels.dst_instance }} 丢包率100%
-            value: '{{ $value }}'
-          expr: |
-            ping_packet_loss_rate{dst_instance!~"www.baidu.com"} == 100
-          for: 5m
-          labels:
-            alarm_alias: 节点宕机告警
-            alarm_desc: 到目标主机丢包率100%，可能是目标节点挂了，也可能是节点间的网络出了问题
-            alarm_level: P0
+
         - alert: MachineDownAlert
           annotations:
             description: '{{ $labels.instance }} 节点监控数据不上报了，可能是服务器宕机，宕机一般是服务器失联超 15m，也有可能是网络问题导致监控指标无法同步'
