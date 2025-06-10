@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-alert
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-alert
+  template:
+    metadata:
+      labels:
+        app: prometheus-alert
+    spec:
+      containers:
+        - name: prometheus-alert
+          image: feiyu563/prometheus-alert:v4.9.1
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /app/conf/app.conf
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-alert-config
+

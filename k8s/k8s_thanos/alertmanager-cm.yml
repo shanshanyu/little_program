@@ -5,7 +5,7 @@ metadata:
   name: alertmanager-config
   namespace: monitoring
 data:
-  config.yml: |
+  alertmanager.yml: |
     global:
       smtp_smarthost: 'smtp.qq.com:465'
       smtp_from: '1525996190@qq.com'
@@ -15,10 +15,15 @@ data:
 
     route:
       group_by: [ 'alertname' ]
-      receiver: 'default-receiver'
+      receiver: 'webhook'
 
     receivers:
       - name: 'default-receiver'
         email_configs:
           - to: 'yushanshan@sensorsdata.com'
             send_resolved: true
+      - name: 'webhook'
+        webhook_configs:
+          - url: 'http://prometheus-alert.monitoring.svc:8080/prometheusalert?type=wx&tpl=prometheus-wx'
+            send_resolved: true
+
