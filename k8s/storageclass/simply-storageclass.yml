@@ -1,0 +1,8 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-boge
+provisioner: kubernetes.io/no-provisioner
+reclaimPolicy: Delete  #默认就是delete
+volumeBindingMode: VolumeBindingImmediate  #默认就是立即绑定，可以延迟绑定

@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: app-config
+spec:
+  storageClassName: nfs-boge
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 2Gi
+  local:       #hostpath可以直接在pod用，不用pv pvc 这种方式
+    path: '/srv/app-config'
+  persistentVolumeReclaimPolicy: Recycle  #手动指定的会覆盖sc默认的
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pv-volume
+spec:
+  storageClassName: nfs-boge
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-server
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      volumeMounts:
+        - mountPath: '/usr/share/nginx/html'
+          name: pv-volume-storage
+  volumes:
+    - name: pv-volume-storage
+      persistentVolumeClaim:
+        claimName: pv-volume
+
+
+
+
+
