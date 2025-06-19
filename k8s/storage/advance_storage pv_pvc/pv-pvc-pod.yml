@@ -12,6 +12,14 @@ spec:
   local:       #hostpath可以直接在pod用，不用pv pvc 这种方式
     path: '/srv/app-config'
   persistentVolumeReclaimPolicy: Recycle  #手动指定的会覆盖sc默认的
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s3  # 替换为实际节点名称
 
 ---
 apiVersion: v1
