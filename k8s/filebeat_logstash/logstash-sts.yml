@@ -1,0 +1,51 @@
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: logstash
+spec:
+  # 使用上面的 Headless Service
+  serviceName: "logstash"
+  selector:
+    matchLabels:
+      app: logstash
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+      - name: logstash
+        image: sensorsdata/logstash:latest
+        ports:
+        - containerPort: 5044
+          name: beat-in
+        volumeMounts:
+        - name: logstash-pipe-conf
+          mountPath: /usr/share/logstash/pipeline/logstash.conf
+          subPath: logstash.conf
+        - name: logstash-set
+          mountPath: /usr/share/logstash/config/logstash.yml
+          subPath: logstash.yml
+        # 容器中 /usr/share/logstash/data 目录下保存着缓冲队列 ，与进度信息。
+        - name: ldata
+          mountPath: /usr/share/logstash/data
+      volumes:
+      - name: logstash-pipe-conf
+        configMap:
+          name: logstash-pipe-conf
+      - name: logstash-set
+        configMap:
+          name: logstash-set
+  volumeClaimTemplates: # Logstash 进度数据使用的 PVC 模板
+  - metadata:
+      name: ldata
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # 使用的存储类名称，需要提前创建。
+      storageClassName: "logstash-nfs-storage"
+      resources:
+        requests:
+          # 大小要高于缓冲队列的最大长度限制
+          storage: 1Gi

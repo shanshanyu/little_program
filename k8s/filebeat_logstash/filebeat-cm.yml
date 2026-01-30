@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  labels:
+    sa-app: filebeat
+data:
+  filebeat.yml: |-
+    filebeat.inputs:
+    - type: log
+      paths:
+        # 采集 service_log 开头的日志文件
+        - /var/log/containers/*/service_log.*
+
+    output.logstash:
+      # 部署好的 Logstash
+      hosts: ["logstash-0.logstash:5044","logstash-1.logstash:5044"]

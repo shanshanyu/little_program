@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: filebeat
+  labels:
+    sa-app: filebeat
+spec:
+  selector:
+    matchLabels:
+      sa-app: filebeat
+  template:
+    metadata:
+      labels:
+        sa-app: filebeat
+    spec:
+      replicas: 1
+      serviceAccountName: filebeat
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: filebeat
+        image: docker.elastic.co/beats/filebeat:7.2.0
+        imagePullPolicy: IfNotPresent
+        args: [
+          "-c", "/etc/filebeat.yml",
+          "-e",
+        ]
+        volumeMounts:
+        - name: config
+          mountPath: /etc/filebeat.yml
+          readOnly: true
+          subPath: filebeat.yml
+        - name: inputs
+          mountPath: /var/log/containers
+          readOnly: true
+        - name: data
+          mountPath: /usr/share/filebeat/data
+      volumes:
+        - name: config
+          configMap:
+            name: filebeat-config
+  volumeClaimTemplates: # Logstash 进度数据使用的 PVC 模板
+    - metadata:
+        name: inputs
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        # 使用的存储类名称，需要提前创建。
+        storageClassName: "filebeat-nfs-accesslog"
+        resources:
+          requests:
+            # 大小要高于缓冲队列的最大长度限制
+            storage: 100Gi
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        # 使用的存储类名称，需要提前创建。
+        storageClassName: "filebeat-nfs-data"
+        resources:
+          requests:
+            # 大小要高于缓冲队列的最大长度限制
+            storage: 10Gi
