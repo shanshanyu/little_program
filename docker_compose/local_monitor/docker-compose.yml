@@ -56,6 +56,26 @@ services:
       - "9256:9256"
     restart: unless-stopped
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin  # Grafana 管理员用户名
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # Grafana 管理员密码
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel  # 可选：安装插件
+      - GF_SERVER_ROOT_URL=http://0.0.0.0:3000  # Grafana 访问URL
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - grafana_data:/var/lib/grafana  # 持久化存储
+      - ./grafana/provisioning:/etc/grafana/provisioning  # 可选：自动配置数据源和仪表盘
+    ports:
+      - "3000:3000"  # Grafana Web 界面端口
+    depends_on:
+      - prometheus  # 确保 Prometheus 先启动
+    restart: unless-stopped
+
 volumes:
   prometheus_data:
   alertmanager_data:
+  grafana_data:
+
